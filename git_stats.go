@@ -20,7 +20,7 @@ type Package struct {
 
 func initClient(context context.Context) *github.Client {
 	//token := os.Getenv("GITHUB_AUTH_TOKEN")
-	token := "241e304f34f73835dfaf8262a695bfb487c91cfa"
+	token := ""
 	var client *github.Client
 
 	if token == "" {
