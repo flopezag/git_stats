@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/google/go-github/github"
+	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 )
 
@@ -19,15 +21,12 @@ type Package struct {
 }
 
 func initClient(context context.Context) *github.Client {
-	//token := os.Getenv("GITHUB_AUTH_TOKEN")
-	token := ""
+	githubAPIKey, exists := os.LookupEnv("GITHUB_API_KEY")
+
 	var client *github.Client
 
-	if token == "" {
-		print("!!! No OAuth token. !!!\n\n")
-		// End program
-	} else {
-		tokenService := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+	if exists {
+		tokenService := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubAPIKey})
 		tokenClient := oauth2.NewClient(context, tokenService)
 
 		client = github.NewClient(tokenClient)
@@ -48,33 +47,75 @@ func unique(authors []string) []string {
 	return list
 }
 
-func getAuthor(context context.Context, client *github.Client, organization string, repository string) []string {
-	commitInfo, resp, err := client.Repositories.ListCommits(context, "Golang-Coach", "Lessons", nil)
+func getAuthors(context context.Context, client *github.Client, organization string, repository string) []string {
+	// For each branch, we need to get the unique list of commits authors
+	// List branches	GET	/repos/{owner}/{repo}/branches{?page}	Done	Done
+	// Get branch		GET	/repos/{owner}/{repo}/branches/{branch}	Done	Done
+	var s []string
+	var aux string
+
+	opt := &github.CommitsListOptions{
+		ListOptions: github.ListOptions{PerPage: 30},
+	}
+
+	branches, _, err := client.Repositories.ListBranches(context, organization, repository, nil)
 
 	if err != nil {
-		fmt.Printf("Problem in commit information %v\n", err)
+		fmt.Printf("Problems getting branches information %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Page: %d", resp.NextPage)
-	var s []string
-	var aux string
-	// Get the list of all authors of the commits
-	for _, v := range commitInfo {
-		aux = v.Author.GetLogin()
+	for _, v := range branches {
+		fmt.Printf("Branch sha: %+v\n", v.Commit.GetSHA())
 
-		if aux == "" {
-			aux = v.Commit.Author.GetName()
+		opt.SHA = v.Commit.GetSHA()
+		opt.Page = 0
+
+		for {
+			commitInfo, resp_commits, err := client.Repositories.ListCommits(context, organization, repository, opt)
+
+			if err != nil {
+				fmt.Printf("Problem in commit information %v\n", err)
+				os.Exit(1)
+			}
+
+			fmt.Printf("Page: %d", resp_commits.NextPage)
+
+			// Get the list of all commit authors
+			for _, v := range commitInfo {
+				aux = v.Author.GetLogin()
+
+				if aux == "" {
+					aux = v.Commit.Author.GetName()
+				}
+
+				// fmt.Printf("index %d, value %+v\n", i, aux)
+				s = append(s, aux)
+			}
+
+			fmt.Printf("  Number of commits: %d\n", len(commitInfo))
+
+			if resp_commits.NextPage == 0 {
+				break
+			}
+
+			opt.Page = resp_commits.NextPage
+
+			s = unique(s)
 		}
 
-		// fmt.Printf("index %d, value %+v\n", i, aux)
-		s = append(s, aux)
 	}
-
-	fmt.Printf("Number of commits: %d\n", len(commitInfo))
 
 	var uniqueAuthors = unique(s)
 	return uniqueAuthors
+}
+
+// init is invoked before main()
+func init() {
+	// loads values from .env into the system
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
 }
 
 func main() {
@@ -82,7 +123,7 @@ func main() {
 
 	client := initClient(context)
 
-	repo, _, err := client.Repositories.Get(context, "Golang-Coach", "Lessons")
+	repo, _, err := client.Repositories.Get(context, "flopezag", "github-api-testing")
 
 	if err != nil {
 		fmt.Printf("Problem in getting repository information %v\n", err)
@@ -98,32 +139,9 @@ func main() {
 
 	fmt.Printf("\n%+v\n\n", pack.FullName)
 
-	/*
-		commitInfo, _, err := client.Repositories.ListCommits(context, "Golang-Coach", "Lessons", nil)
-
-		if err != nil {
-			fmt.Printf("Problem in commit information %v\n", err)
-			os.Exit(1)
-		}
-
-		var s []string
-		var aux string
-		// Get the list of all authors of the commits
-		for i, v := range commitInfo {
-			aux = v.Author.GetLogin()
-
-			if aux == "" {
-				aux = v.Commit.Author.GetName()
-			}
-
-			fmt.Printf("index %d, value %+v\n", i, aux)
-			s = append(s, commitInfo[i].Author.GetID())
-		}
-	*/
-
 	var s []string
 
-	s = getAuthor(context, client, "Golang-Coach", "Lessons")
+	s = getAuthors(context, client, "flopezag", "github-api-testing")
 
 	for i, v := range s {
 		fmt.Printf("index %d, value %+v\n", i, v)
