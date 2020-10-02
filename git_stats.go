@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/joho/godotenv"
@@ -59,11 +60,18 @@ func getForkedRepos(context context.Context, client *github.Client, organization
 	repo = append(repo, repository)
 
 	// Need to check if there is more than 30 forks in a repo
+repeat:
 	forks, _, err := client.Repositories.ListForks(context, organization, repository, nil)
 
 	if err != nil {
-		fmt.Printf("Problems getting branches information %v\n", err)
-		os.Exit(1)
+		if _, ok := err.(*github.RateLimitError); ok {
+			fmt.Println("GitHub rate limit reached, waiting 1h")
+			time.Sleep(61 * time.Minute)
+			goto repeat
+		} else {
+			fmt.Printf("Problems getting branches information %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	for _, v := range forks {
@@ -93,28 +101,40 @@ func getAuthors(context context.Context, client *github.Client, organization str
 
 		// First, for the main repo extract all branches and get the owners of all commits
 		// Need to check if there is more than 30 branches in one repo...
+	repeat1:
 		branches, _, err := client.Repositories.ListBranches(context, u, t, nil)
 
 		if err != nil {
-			fmt.Printf("Problems getting branches information %v\n", err)
-			os.Exit(1)
+			if _, ok := err.(*github.RateLimitError); ok {
+				fmt.Println("GitHub rate limit reached, waiting 1h")
+				time.Sleep(61 * time.Minute)
+				goto repeat1
+			} else {
+				fmt.Printf("Problems getting branches information %v\n", err)
+				os.Exit(1)
+			}
 		}
 
 		for _, v := range branches {
-			fmt.Printf("Branch sha: %+v\n", v.Commit.GetSHA())
+			fmt.Printf("    Branch sha: %+v        name: %+v\n", v.Commit.GetSHA(), *v.Name)
 
 			opt.SHA = v.Commit.GetSHA()
 			opt.Page = 0
 
 			for {
+			repeat2:
 				commitInfo, resp_commits, err := client.Repositories.ListCommits(context, u, t, opt)
 
 				if err != nil {
-					fmt.Printf("Problem in commit information %v\n", err)
-					os.Exit(1)
+					if _, ok := err.(*github.RateLimitError); ok {
+						fmt.Println("GitHub rate limit reached, waiting 1h")
+						time.Sleep(61 * time.Minute)
+						goto repeat2
+					} else {
+						fmt.Printf("Problems getting branches information %v\n", err)
+						os.Exit(1)
+					}
 				}
-
-				// fmt.Printf("Page: %d", resp_commits.NextPage)
 
 				// Get the list of all commit authors
 				for _, w := range commitInfo {
@@ -127,8 +147,6 @@ func getAuthors(context context.Context, client *github.Client, organization str
 					// fmt.Printf("index %d, value %+v\n", i, aux)
 					s = append(s, aux)
 				}
-
-				// fmt.Printf("  Number of commits: %d\n", len(commitInfo))
 
 				if resp_commits.NextPage == 0 {
 					break
@@ -158,11 +176,18 @@ func init() {
 }
 
 func getRepoData(context context.Context, client *github.Client, owner string, repo string) string {
+repeat:
 	repoData, _, err := client.Repositories.Get(context, owner, repo)
 
 	if err != nil {
-		fmt.Printf("Problem in getting repository information %v\n", err)
-		os.Exit(1)
+		if _, ok := err.(*github.RateLimitError); ok {
+			fmt.Println("GitHub rate limit reached, waiting 1h")
+			time.Sleep(61 * time.Minute)
+			goto repeat
+		} else {
+			fmt.Printf("Problems getting branches information %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	return *repoData.FullName
@@ -213,9 +238,7 @@ func main() {
 		repoName := getRepoData(context, client, owner, repo)
 		fmt.Printf("\n%+v\n\n", repoName)
 
-		var s = getAuthors(context, client, owner, repo)
-
-		authors = append(authors, s...)
+		authors = append(authors, getAuthors(context, client, owner, repo)...)
 		authors = unique(authors)
 	}
 
