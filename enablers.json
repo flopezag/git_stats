@@ -1,0 +1,146 @@
+[{
+    "enabler": "Orion Context Broker",
+    "owner": "telefonicaid",
+    "repo": "fiware-orion"
+}, {
+    "enabler": "Orion - LD Context Broker",
+    "owner": "FIWARE",
+    "repo": "context.Orion-LD"
+}, {
+    "enabler": "Scorpio Broker",
+    "owner": "ScorpioBroker",
+    "repo": "ScorpioBroker"
+}, {
+    "enabler": "Stellio Context Broker",
+    "owner": "stellio-hub",
+    "repo": "stellio-context-broker"
+}, {
+    "enabler": "STH Comet",
+    "owner": "telefonicaid",
+    "repo": "fiware-sth-comet"
+}, {
+    "enabler": "Cygnus",
+    "owner": "telefonicaid",
+    "repo": "fiware-cygnus"
+}, {
+    "enabler": "Draco",
+    "owner": "ging",
+    "repo": "fiware-draco"
+}, {
+    "enabler": "Cosmos",
+    "owner": "ging",
+    "repo": "fiware-cosmos"
+}, {
+    "enabler": "QuantumLeap",
+    "owner": "smartsdk",
+    "repo": "ngsi-timeseries-api"
+}, {
+    "enabler": "IoT Agent for JSON",
+    "owner": "telefonicaid",
+    "repo": "iotagent-json"
+}, {
+    "enabler": "IoT Agent for LWM2M",
+    "owner": "telefonicaid",
+    "repo": "lightweightm2m-iotagent"
+}, {
+    "enabler": "IoT Agent for Ultralight",
+    "owner": "telefonicaid",
+    "repo": "iotagent-ul"
+}, {
+    "enabler": "IoT Agent for LoRaWAN",
+    "owner": "Atos-Research-and-Innovation",
+    "repo": "IoTagent-LoRaWAN"
+}, {
+    "enabler": "IoT Agent for OPC - UA",
+    "owner": "Engineering-Research-and-Development",
+    "repo": "iotagent-opcua"
+}, {
+    "enabler": "IoT Agent for Sigfox ",
+    "owner": "telefonicaid",
+    "repo": "sigfox-iotagent"
+}, {
+    "enabler": "IoT Agent library",
+    "owner": "telefonicaid",
+    "repo": "iotagent-node-lib"
+}, {
+    "enabler": "OpenMTC",
+    "owner": "OpenMTC",
+    "repo": "OpenMTC"
+}, {
+    "enabler": "Fast DDS",
+    "owner": "eProsima",
+    "repo": "Fast-RTPS"
+}, {
+    "enabler": "Micro XRCE - DDS",
+    "owner": "eProsima",
+    "repo": "Micro-XRCE-DDS"
+}, {
+    "enabler": "FIROS",
+    "owner": "iml130",
+    "repo": "firos"
+}, {
+    "enabler": "Oliot",
+    "owner": "yalewkidane",
+    "repo": "FIWARE_EPCIS_Mediation_Gateway"
+}, {
+    "enabler": "Wirecloud",
+    "owner": "Wirecloud",
+    "repo": "wirecloud"
+}, {
+    "enabler": "Knowage",
+    "owner": "KnowageLabs",
+    "repo": "Knowage-Server"
+}, {
+    "enabler": "Kurento",
+    "owner": "Kurento",
+    "repo": "kurento-media-server"
+}, {
+    "enabler": "FogFlow",
+    "owner": "smartfog",
+    "repo": "fogflow"
+}, {
+    "enabler": "Perseo",
+    "owner": "telefonicaid",
+    "repo": "perseo-core"
+}, {
+    "enabler": "OpenVidu",
+    "owner": "OpenVidu",
+    "repo": "openvidu"
+}, {
+    "enabler": "Keyrock Identity Management",
+    "owner": "ging",
+    "repo": "fiware-idm"
+}, {
+    "enabler": "Wilma PEP Proxy",
+    "owner": "ging",
+    "repo": "fiware-pep-proxy"
+}, {
+    "enabler": "AuthZForce PDP ",
+    "repo": " PAP",
+    "owner": "authzforce",
+    "repo": "server"
+}, {
+    "enabler": "https:",
+    "repo": "",
+    "repo": "github.com",
+    "repo": "ging",
+    "repo": "fiware-usage-control",
+    "owner": "ging",
+    "repo": "fiware-usage-control"
+}, {
+    "enabler": "CKAN extensions",
+    "owner": "conwetlab",
+    "repo": "FIWARE-CKAN-Extensions"
+}, {
+    "enabler": "Biz Framework",
+    "owner": "FIWARE-TMForum",
+    "repo": "Business-API-Ecosystem"
+}, {
+    "enabler": "Idra",
+    "owner": "OPSILab",
+    "repo": "Idra"
+}, {
+    "enabler": "APInf",
+    "owner": "apinf",
+    "repo": "platform"
+}]

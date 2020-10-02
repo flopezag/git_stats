@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -12,12 +14,10 @@ import (
 )
 
 // Model
-type Package struct {
-	FullName      string
-	Description   string
-	StarsCount    int
-	ForksCount    int
-	LastUpdatedBy string
+type GE struct {
+	Enabler string
+	Owner   string
+	Repo    string
 }
 
 func initClient(context context.Context) *github.Client {
@@ -76,14 +76,12 @@ func getForkedRepos(context context.Context, client *github.Client, organization
 
 func getAuthors(context context.Context, client *github.Client, organization string, repository string) []string {
 	// For each branch, we need to get the unique list of commits authors
-	// List branches	GET	/repos/{owner}/{repo}/branches{?page}	Done	Done
-	// Get branch		GET	/repos/{owner}/{repo}/branches/{branch}	Done	Done
 	var s []string
 	var aux string
 
 	// Initialize the CommitsLisOptions parameter
 	opt := &github.CommitsListOptions{
-		ListOptions: github.ListOptions{PerPage: 30},
+		ListOptions: github.ListOptions{PerPage: 100},
 	}
 
 	owner, repo := getForkedRepos(context, client, organization, repository)
@@ -116,7 +114,7 @@ func getAuthors(context context.Context, client *github.Client, organization str
 					os.Exit(1)
 				}
 
-				fmt.Printf("Page: %d", resp_commits.NextPage)
+				// fmt.Printf("Page: %d", resp_commits.NextPage)
 
 				// Get the list of all commit authors
 				for _, w := range commitInfo {
@@ -130,7 +128,7 @@ func getAuthors(context context.Context, client *github.Client, organization str
 					s = append(s, aux)
 				}
 
-				fmt.Printf("  Number of commits: %d\n", len(commitInfo))
+				// fmt.Printf("  Number of commits: %d\n", len(commitInfo))
 
 				if resp_commits.NextPage == 0 {
 					break
@@ -147,6 +145,7 @@ func getAuthors(context context.Context, client *github.Client, organization str
 	}
 
 	var uniqueAuthors = unique(s)
+
 	return uniqueAuthors
 }
 
@@ -158,33 +157,70 @@ func init() {
 	}
 }
 
-func main() {
-	context := context.Background()
-
-	client := initClient(context)
-
-	repo, _, err := client.Repositories.Get(context, "flopezag", "github-api-testing")
+func getRepoData(context context.Context, client *github.Client, owner string, repo string) string {
+	repoData, _, err := client.Repositories.Get(context, owner, repo)
 
 	if err != nil {
 		fmt.Printf("Problem in getting repository information %v\n", err)
 		os.Exit(1)
 	}
 
-	pack := &Package{
-		FullName:    *repo.FullName,
-		Description: *repo.Description,
-		ForksCount:  *repo.ForksCount,
-		StarsCount:  *repo.StargazersCount,
+	return *repoData.FullName
+}
+
+func getRepos() []GE {
+	var ge []GE
+
+	jsonFile, err := os.Open("enablers.json")
+
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
 	}
 
-	fmt.Printf("\n%+v\n\n", pack.FullName)
+	fmt.Println("Successfully Opened enablers.json")
 
-	var s []string
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
 
-	s = getAuthors(context, client, "flopezag", "github-api-testing")
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	// we unmarshal our byteArray which contains our
+	// jsonFile's content into 'users' which we defined above
+	json.Unmarshal(byteValue, &ge)
+
+	return ge
+}
+
+func main() {
+	var authors []string
+
+	// we iterate through every user within our users array and
+	// print out the user Type, their name, and their facebook url
+	// as just an example
+	ge := getRepos()
+
+	for i := 0; i < len(ge); i++ {
+		var owner = ge[i].Owner
+		var repo = ge[i].Repo
+
+		fmt.Println("Enabler name: " + ge[i].Enabler + "    Owner: " + owner + "    Repo: " + repo)
+
+		context := context.Background()
+
+		client := initClient(context)
+
+		repoName := getRepoData(context, client, owner, repo)
+		fmt.Printf("\n%+v\n\n", repoName)
+
+		var s = getAuthors(context, client, owner, repo)
+
+		authors = append(authors, s...)
+		authors = unique(authors)
+	}
 
 	fmt.Printf("\nResults obtained (different users)\n")
-	for i, v := range s {
+	for i, v := range authors {
 		fmt.Printf("    Index %d, value %+v\n", i, v)
 	}
 
